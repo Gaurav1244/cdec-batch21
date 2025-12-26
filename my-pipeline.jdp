@@ -3,7 +3,7 @@ pipeline {
             stages {
                 stage ('PULL') {
                 steps {
-                   git 'https://github.com/chetanraval07/shivansh-jenkins.git'
+                   git 'https://github.com/chetanraval07/cdec-batch21.git'
                 }
             }
                  stage ('BUILD') {
