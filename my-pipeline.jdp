@@ -1,27 +1,35 @@
-pipeline {
-        agent any 
-            stages {
-                stage ('PULL') {
-                steps {
-                   git 'https://github.com/chetanraval07/cdec-batch21.git'
-                }
-            }
-                 stage ('BUILD') {
-                steps {
-                    sh ''' cd /root/EasyCRUD/backend  
-mvn clean package -DskipTests'''
-                }
-            }
-                 stage ('TEST') {
-                steps {
-                    echo "TEST SUCCESS"
-                }
-            }
-                 stage ('DEPLOY') {
-                steps {
-                    echo "DEPLOY SUCCESS"
-                }
-            }
-        }    
-}
 
+pipeline {
+    agent any
+
+    stages {
+
+        stage('PULL') {
+            steps {
+                git 'https://github.com/chetanraval07/cdec-batch21.git'
+            }
+        }
+
+        stage('BUILD') {
+            steps {
+                dir('EasyCRUD/backend') {
+                    sh '''
+                    mvn clean package -DskipTests
+                    '''
+                }
+            }
+        }
+
+        stage('TEST') {
+            steps {
+                echo "TEST SUCCESS"
+            }
+        }
+
+        stage('DEPLOY') {
+            steps {
+                echo "DEPLOY SUCCESS"
+            }
+        }
+    }
+}
