@@ -8,7 +8,7 @@ pipeline {
             }
                  stage ('BUILD') {
                 steps {
-                    sh '''cd /home/ubuntu/my-cbz/EasyCRUD/backend 
+                    sh '''cd backend 
 mvn clean package -DskipTests'''
                 }
             }
