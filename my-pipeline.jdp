@@ -1,4 +1,5 @@
-	pipeline {
+
+pipeline {
     agent any
 
     stages {
@@ -21,15 +22,9 @@
 
         stage('TEST') {
             steps {
-                dir('backend') {
-                    sh '''
-                    mvn verify -DskipTests sonar:sonar \
-                      -Dsonar.projectKey=studentapp \
-                      -Dsonar.projectName=studentapp \
-                      -Dsonar.host.url=http://172.31.18.238:9000 \
-                      -Dsonar.token=sqp_9645cdea9051b855c9b28b1b0705bbb3fecf953d
-                    '''
-                }
+                 withSonarQubeEnv(credentialsId: 'mz1') {
+		dir('backend') {
+			
             }
         }
 
