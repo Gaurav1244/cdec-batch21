@@ -22,24 +22,19 @@ pipeline {
         stage('TEST') {
             steps {
                 dir('backend') {
-                    script {
-                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                            sh '''
+                    sh '''
                             mvn verify -DskipTests sonar:sonar \
                               -Dsonar.projectKey=studentapp \
                               -Dsonar.projectName=studentapp \
                               -Dsonar.host.url=http://172.31.18.238:9000 \
-                              -Dsonar.token=$SONAR_TOKEN
+                              -Dsonar.token=sqp_9645cdea9051b855c9b28b1b0705bbb3fecf953d
                             '''
                         }
                     }
                 }
-            }
-        }
 
-        stage('DEPLOY') {
-            steps {
-                echo "DEPLOY SUCCESS"
+        stage('DEPLOY') { steps {
+            echo "DEPLOY SUCCESS"
             }
         }
     }
