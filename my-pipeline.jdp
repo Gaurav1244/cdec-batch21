@@ -18,18 +18,21 @@ pipeline {
                 }
             }
         }
-	stage('TEST') {
-    steps {
-        dir('backend') {
-            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                sh '''
-                mvn verify -DskipTests sonar:sonar \
-                  -Dsonar.projectKey=studentapp \
-                  -Dsonar.projectName=studentapp \
-                  -Dsonar.host.url=http://172.31.18.238:9000 \
-                  -Dsonar.token=$SONAR_TOKEN
-                '''
-       
+
+        stage('TEST') {
+            steps {
+                dir('backend') {
+                    script {
+                        withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                            sh '''
+                            mvn verify -DskipTests sonar:sonar \
+                              -Dsonar.projectKey=studentapp \
+                              -Dsonar.projectName=studentapp \
+                              -Dsonar.host.url=http://172.31.18.238:9000 \
+                              -Dsonar.token=$SONAR_TOKEN
+                            '''
+                        }
+                    }
                 }
             }
         }
