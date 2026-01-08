@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('PULL') {
+            steps {
+                git ' https://github.com/Gaurav1244/cdec-batch21.git'
+            }
+        }
+
+        stage('BUILD') {
+            steps {
+                dir('backend') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('SONARQUBE ANALYSIS') {
+            steps {
+                withSonarQubeEnv('mysonarqube') {
+                    dir('backend') {
+                        sh '''
+                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                              -Dsonar.projectKey=myapp \
+                              -Dsonar.projectName=myapp
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('QUALITY GATE') {
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('DEPLOY') {
+            steps {
+                echo "DEPLOY SUCCESS"
+            }
+        }
+    }
+}
