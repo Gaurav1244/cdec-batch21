@@ -43,6 +43,12 @@ pipeline {
             }
         }
 
+        stage('DELIVERY') {
+            steps {
+                sh 'aws s3 cp /backend/target/student-registration-backend-0.0.1-SNAPSHOT.jar s3://my-simple-tfstate-bucket-12345/student-artifact.jar'
+            }
+        }
+
         stage('DEPLOY') {
             steps {
                 echo "DEPLOY SUCCESS"
