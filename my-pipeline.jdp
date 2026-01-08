@@ -5,7 +5,7 @@ pipeline {
 
         stage('PULL') {
             steps {
-                git 'https://github.com/chetanraval07/cdec-batch21.git'
+                git 'https://github.com/Gaurav1244/cdec-21.git'
             }
         }
 
@@ -19,12 +19,12 @@ pipeline {
 
         stage('SONARQUBE ANALYSIS') {
             steps {
-                withSonarQubeEnv('sonar-cred1') {
+                withSonarQubeEnv('mysonarqube') {
                     dir('backend') {
                         sh '''
                             mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                              -Dsonar.projectKey=studentapp \
-                              -Dsonar.projectName=studentapp
+                              -Dsonar.projectKey=myapp \
+                              -Dsonar.projectName=myapp
                         '''
                     }
                 }
