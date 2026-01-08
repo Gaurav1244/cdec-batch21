@@ -5,13 +5,14 @@ pipeline {
 
         stage('PULL') {
             steps {
-                git branch" 'main',
-		url: 'https://github.com/Gaurav1244/cdec-batch21.git'
+                // Clone your repo from main branch
+                git branch: 'main', url: 'https://github.com/Gaurav1244/cdec-batch21.git'
             }
         }
 
         stage('BUILD') {
             steps {
+                // Build Maven project in backend folder
                 dir('backend') {
                     sh 'mvn clean package -DskipTests'
                 }
@@ -20,6 +21,7 @@ pipeline {
 
         stage('SONARQUBE ANALYSIS') {
             steps {
+                // Run SonarQube analysis with configured server
                 withSonarQubeEnv('mysonarqube') {
                     dir('backend') {
                         sh '''
@@ -34,6 +36,7 @@ pipeline {
 
         stage('QUALITY GATE') {
             steps {
+                // Wait for SonarQube quality gate result
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
@@ -45,6 +48,7 @@ pipeline {
                 echo "DEPLOY SUCCESS"
             }
         }
+
     }
 }
 
