@@ -1,4 +1,4 @@
-pipeline {
+ipipeline {
     agent any
 
     stages {
@@ -45,7 +45,7 @@ pipeline {
 
        stage('DELIVERY') {
     steps {
-        withAWS(credentials: 'aws-credentials', region: 'ap-south-1') {
+        dir('backend') {
             sh 'aws s3 cp backend/target/student-registration-backend-0.0.1-SNAPSHOT.jar s3://my-simple-tfstate-bucket-12345/student-artifact.jar'
         }
     }
