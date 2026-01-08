@@ -43,13 +43,19 @@ pipeline {
             }
         }
 
-       stage('DELIVERY') {
+         stage('DELIVERY') {
     steps {
         dir('backend') {
-            sh 'aws s3 cp target/student-registration-backend-0.0.1-SNAPSHOT.jar s3://my-simple-tfstate-bucket-12345/student-artifact.jar'
+            withAWS(credentials: 'aws-creds', region: 'ap-south-1') {
+                sh '''
+                  aws s3 cp target/student-registration-backend-0.0.1-SNAPSHOT.jar \
+                  s3://my-simple-tfstate-bucket-12345/student-artifact.jar
+                '''
+            }
         }
     }
 }
+
 
         stage('DEPLOY') {
             steps {
