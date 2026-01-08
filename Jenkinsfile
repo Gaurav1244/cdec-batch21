@@ -44,7 +44,7 @@ pipeline {
                 dir('backend') {
                     withCredentials([
                         usernamePassword(
-                            credentialsId: 'aws-creds',
+                            credentialsId: 'aws-cred',
                             usernameVariable: 'AWS_ACCESS_KEY_ID',
                             passwordVariable: 'AWS_SECRET_ACCESS_KEY'
                         )
