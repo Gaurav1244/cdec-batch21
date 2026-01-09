@@ -4,6 +4,7 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         ECR_REPO = "730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app"
+        EKS_CLUSTER = "student-cluster"
     }
 
     stages {
@@ -72,17 +73,29 @@ pipeline {
 
         stage('DEPLOY TO EKS') {
             steps {
-                sh '''
-                aws eks update-kubeconfig --region ap-south-1 --name student-cluster
+                script {
+                    def clusterExists = sh(
+                        script: "aws eks describe-cluster --name $EKS_CLUSTER --region $AWS_REGION >/dev/null 2>&1 && echo 'yes' || echo 'no'",
+                        returnStdout: true
+                    ).trim()
 
-                sed -i "s|<ECR-IMAGE-URL>|$ECR_REPO:latest|g" backend/k8s/deployment.yml
+                    if (clusterExists == 'yes') {
+                        sh """
+                        echo 'Cluster exists. Updating kubeconfig...'
+                        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
 
-                kubectl apply -f backend/k8s/deployment.yml
-                kubectl apply -f backend/k8s/service.yml
+                        sed -i "s|<ECR-IMAGE-URL>|$ECR_REPO:latest|g" backend/k8s/deployment.yml
 
-                kubectl get pods
-                kubectl get svc
-                '''
+                        kubectl apply -f backend/k8s/deployment.yml
+                        kubectl apply -f backend/k8s/service.yml
+
+                        kubectl get pods
+                        kubectl get svc
+                        """
+                    } else {
+                        error("EKS cluster '$EKS_CLUSTER' not found in region '$AWS_REGION'. Deployment aborted.")
+                    }
+                }
             }
         }
     }
