@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        AWS_REGION = "ap-south-1"
+        ECR_REPO = "730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app"
+    }
+
     stages {
 
         stage('PULL') {
@@ -22,9 +27,9 @@ pipeline {
                 withSonarQubeEnv('mysonarqube') {
                     dir('backend') {
                         sh '''
-                            mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-                              -Dsonar.projectKey=myapp \
-                              -Dsonar.projectName=myapp
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+                        -Dsonar.projectKey=myapp \
+                        -Dsonar.projectName=myapp
                         '''
                     }
                 }
@@ -39,42 +44,47 @@ pipeline {
             }
         }
 
-        stage('DELIVERY') {
+        stage('DELIVERY TO S3') {
             steps {
                 dir('backend') {
-                        sh '''
-                        export AWS_DEFAULT_REGION=ap-south-1
-                        aws s3 cp target/student-registration-backend-0.0.1-SNAPSHOT.jar \
-                        s3://my-simple-tfstate-bucket-12345/student-artifact.jar
-                        '''
-                    }
+                    sh '''
+                    aws s3 cp target/student-registration-backend-0.0.1-SNAPSHOT.jar \
+                    s3://my-simple-tfstate-bucket-12345/student-artifact.jar
+                    '''
                 }
             }
         }
 
         stage('DOCKER BUILD & PUSH') {
-  steps {
-    dir('backend') {
-      sh '''
-      aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app
-      docker build -t student-app 
-      docker tag student-app:latest 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest
-      docker push 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest
-      '''
+            steps {
+                dir('backend') {
+                    sh '''
+                    aws ecr get-login-password --region $AWS_REGION \
+                    | docker login --username AWS --password-stdin $ECR_REPO
+
+                    docker build -t student-app .
+                    docker tag student-app:latest $ECR_REPO:latest
+                    docker push $ECR_REPO:latest
+                    '''
+                }
+            }
+        }
+
+        stage('DEPLOY TO EKS') {
+            steps {
+                sh '''
+                aws eks update-kubeconfig --region ap-south-1 --name student-cluster
+
+                sed -i "s|<ECR-IMAGE-URL>|$ECR_REPO:latest|g" backend/k8s/deployment.yml
+
+                kubectl apply -f backend/k8s/deployment.yml
+                kubectl apply -f backend/k8s/service.yml
+
+                kubectl get pods
+                kubectl get svc
+                '''
+            }
+        }
     }
-  }
 }
 
-    stage('DEPLOY TO EKS') {
-  steps {
-    sh '''
-    aws eks update-kubeconfig --region ap-south-1 --name student-cluster
-
-    sed -i "s|<ECR-IMAGE-URL>|730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest|g" backend/k8s/deployment.yml
-
-    kubectl apply -f backend/k8s/deployment.yml
-    kubectl get pods
-    kubectl get svc
-    '''
-  }
-}
