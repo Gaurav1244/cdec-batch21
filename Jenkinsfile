@@ -59,10 +59,29 @@ pipeline {
             }
         }
 
-        stage('DEPLOY') {
-            steps {
-                echo "DEPLOY SUCCESS"
-            }
-        }
+        stage('DOCKER BUILD & PUSH') {
+  steps {
+    dir('backend') {
+      sh '''
+      aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app
+      docker build -t student-app 
+      docker tag student-app:latest 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest
+      docker push 730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest
+      '''
     }
+  }
+}
+
+    stage('DEPLOY TO EKS') {
+  steps {
+    sh '''
+    aws eks update-kubeconfig --region ap-south-1 --name student-cluster
+
+    sed -i "s|<ECR-IMAGE-URL>|730335465515.dkr.ecr.ap-south-1.amazonaws.com/student-app/student-app:latest|g" backend/k8s/deployment.yml
+
+    kubectl apply -f backend/k8s/deployment.yml
+    kubectl get pods
+    kubectl get svc
+    '''
+  }
 }
