@@ -1,18 +1,22 @@
-FROM maven:3.8.3-openjdk-17
+# -------- STAGE 1: Build --------
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-FROM ubuntu:22.04
-RUN apt update
-RUN apt install openjdk-17-jdk -y
-RUN apt install maven -y
+WORKDIR /app
 
-COPY . /opt/
-WORKDIR /opt
-
-RUN rm -rf src/main/resources/application.properties
-RUN cp -f application.properties src/main/resources/application.properties
+COPY pom.xml .
+COPY src ./src
 
 RUN mvn clean package -DskipTests
 
-WORKDIR /opt/target/
+
+# -------- STAGE 2: Runtime --------
+FROM eclipse-temurin:17-jre-jammy
+
+WORKDIR /app
+
+COPY --from=build /app/target/student-registration-backend-0.0.1-SNAPSHOT.jar app.jar
+
 EXPOSE 8080
-CMD ["java","-jar","student-registration-backend-0.0.1-SNAPSHOT.jar"]
+
+ENTRYPOINT ["java","-jar","app.jar"]
+
